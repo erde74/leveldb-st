@@ -15,24 +15,28 @@ Class {
 { #category : #'db operations' }
 LevelDB >> close [
 	db isNull
-		ifFalse: [ LevelDBFFI close: db ]
+		ifTrue: [ ^ self ].
+	LevelDBFFI close: db.
+	db := ExternalAddress new.
 ]
 
 { #category : #accessing }
 LevelDB >> db [
-	^db.
+	^ db
 ]
 
 { #category : #accessing }
-LevelDB >> deleteKey: aKey [
+LevelDB >> delete: aKey [
+	error := ExternalAddress new.
 	db isNull
-		ifFalse: [ LevelDBFFI
-				delete: db
-				withWriteOptions: writeOptions options
-				key: aKey
-				keylen: aKey size
-				errptr: error.
-			errorMessage := error readString ]
+		ifTrue: [ ^ self ].
+	LevelDBFFI
+		delete: db
+		withWriteOptions: writeOptions options
+		key: aKey
+		keylen: aKey size
+		errptr: error.
+	errorMessage := error readString
 ]
 
 { #category : #'db operations' }
@@ -50,19 +54,20 @@ LevelDB >> errorMessage [
 ]
 
 { #category : #'db operations' }
-LevelDB >> getKey: aKey [
+LevelDB >> get: aKey [
+	| vallen value |
 	db isNull
-		ifFalse: [ | vallen value |
-			vallen := 0.
-			value := LevelDBFFI
-				get: db
-				withReadOptions: readOptions options
-				key: aKey
-				keylen: aKey size
-				vallen: vallen
-				errptr: error.
-			errorMessage := error readString.
-			^ value ]
+		ifTrue: [ ^ self ].
+	vallen := 0.
+	value := LevelDBFFI
+		get: db
+		withReadOptions: readOptions options
+		key: aKey
+		keylen: aKey size
+		vallen: vallen
+		errptr: error.
+	errorMessage := error readString.
+	^ value
 ]
 
 { #category : #options }
@@ -84,6 +89,23 @@ LevelDB >> initialize [
 	writeOptions := LevelDBWriteOptions new
 ]
 
+{ #category : #testing }
+LevelDB >> isExternalAddress [
+	^ false
+]
+
+{ #category : #'as yet unclassified' }
+LevelDB >> iterator [
+	| it |
+	db isNull
+		ifFalse: [ it := LevelDBIterator new.
+			it db: db.
+			it create]
+		ifTrue: [ ^ nil ].
+		
+	^it.
+]
+
 { #category : #'db operations' }
 LevelDB >> open: aFilename [
 	db isNull
@@ -98,19 +120,20 @@ LevelDB >> options [
 ]
 
 { #category : #'db operations' }
-LevelDB >> putKey: aKey withValue: aValue [
+LevelDB >> put: aKey withValue: aValue [
+	| vallen |
 	db isNull
-		ifFalse: [ | vallen |
-			vallen := aValue size + 1.
-			LevelDBFFI
-				put: db
-				withWriteOptions: writeOptions options
-				key: aKey
-				keylen: aKey size
-				val: aValue
-				vallen: vallen
-				errptr: error.
-			errorMessage := error readString ]
+		ifTrue: [ ^ self ].
+	vallen := aValue size + 1.
+	LevelDBFFI
+		put: db
+		withWriteOptions: writeOptions options
+		key: aKey
+		keylen: aKey size
+		val: aValue
+		vallen: vallen
+		errptr: error.
+	errorMessage := error readString
 ]
 
 { #category : #'db operations' }

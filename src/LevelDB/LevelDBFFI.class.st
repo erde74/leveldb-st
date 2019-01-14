@@ -86,18 +86,17 @@ LevelDBFFI class >> iteratorDestroy: aDB [
 ]
 
 { #category : #iteration }
-LevelDBFFI class >> iteratorGetErrorValue: aIterator andError: errptr [
-
-^ self 
-		ffiCall: #(void leveldb_iter_get_error(void* aIterator, char ** errptr)) 
-		module: LevelDBFFI.
+LevelDBFFI class >> iteratorGetError: errptr with: aIterator [
+	^ self
+		ffiCall: #(void leveldb_iter_get_error #(void * aIterator , char ** errptr))
+		module: LevelDBFFI
 ]
 
 { #category : #iteration }
 LevelDBFFI class >> iteratorKey: aIterator andKeyLen: klen [
 
 ^ self 
-		ffiCall: #(char * leveldb_iter_key(void* aIterator, size_t * klen)) 
+		ffiCall: #(String * leveldb_iter_key(void* aIterator, size_t * klen)) 
 		module: LevelDBFFI.
 ]
 
@@ -118,7 +117,9 @@ LevelDBFFI class >> iteratorPrev: aIterator [
 ]
 
 { #category : #iteration }
-LevelDBFFI class >> iteratorSeek: aIterator withKey: aKey andKeyLen: klen [
+LevelDBFFI class >> iteratorSeek: aIterator toKey: aKey [
+	| klen |
+	klen := 0.
 
 ^ self 
 		ffiCall: #(void leveldb_iter_seek(void* aIterator, char* aKey, size_t klen)) 
@@ -126,11 +127,15 @@ LevelDBFFI class >> iteratorSeek: aIterator withKey: aKey andKeyLen: klen [
 ]
 
 { #category : #iteration }
-LevelDBFFI class >> iteratorSeekToFirst: aIterator [
+LevelDBFFI class >> iteratorSeek: aIterator toKey: aKey klen: klen [
+	^ self
+		ffiCall: #(void leveldb_iter_seek #(void * aIterator , char * aKey , size_t klen))
+		module: LevelDBFFI
+]
 
-^ self 
-		ffiCall: #(void leveldb_iter_seek_to_first(void* aIterator)) 
-		module: LevelDBFFI.
+{ #category : #iteration }
+LevelDBFFI class >> iteratorSeekToFirst: aIterator [
+	self ffiCall: #(void leveldb_iter_seek_to_first #(void * aIterator)) module: LevelDBFFI
 ]
 
 { #category : #iteration }
